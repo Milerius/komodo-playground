@@ -23,14 +23,17 @@ option(ENABLE_IPO_OPTIMISATION "Enable IPO optimization" ON)
 option(ENABLE_UNIT_TESTS "Enable unit tests for targets" ON)
 
 ## Common target for executable / unit tests
+find_package(cpprestsdk REQUIRED)
+
 add_library(common_dependancies INTERFACE)
 add_library(komodo::common_dependancies ALIAS common_dependancies)
-target_link_libraries(common_dependancies INTERFACE komodo::default_settings nlohmann_json::nlohmann_json)
+target_link_libraries(common_dependancies INTERFACE komodo::default_settings nlohmann_json::nlohmann_json cpprestsdk::cpprest)
 target_enable_asan(common_dependancies)
 target_enable_tsan(common_dependancies)
 target_enable_ubsan(common_dependancies)
 target_enable_coverage(common_dependancies)
 target_ipo(common_dependancies)
+
 
 ## Our executable / unit tests
 add_executable(${PROJECT_NAME})
