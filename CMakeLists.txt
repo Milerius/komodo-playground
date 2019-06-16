@@ -14,6 +14,8 @@ set(CMAKE_MODULE_PATH ${PROJECT_SOURCE_DIR}/cmake)
 include(utils)
 include(dependancies)
 
+configure_file(config/config.json bin/config.json)
+
 ##! Options
 option(USE_ASAN "Use address sanitizer" OFF)
 option(USE_TSAN "Use thread sanitizer" OFF)
@@ -23,11 +25,10 @@ option(ENABLE_IPO_OPTIMISATION "Enable IPO optimization" ON)
 option(ENABLE_UNIT_TESTS "Enable unit tests for targets" ON)
 
 ## Common target for executable / unit tests
-find_package(cpprestsdk REQUIRED)
-
 add_library(common_dependancies INTERFACE)
 add_library(komodo::common_dependancies ALIAS common_dependancies)
-target_link_libraries(common_dependancies INTERFACE komodo::default_settings nlohmann_json::nlohmann_json cpprestsdk::cpprest)
+target_link_libraries(common_dependancies INTERFACE komodo::default_settings nlohmann_json::nlohmann_json)
+target_include_directories(common_dependancies INTERFACE extra)
 target_enable_asan(common_dependancies)
 target_enable_tsan(common_dependancies)
 target_enable_ubsan(common_dependancies)
@@ -37,11 +38,21 @@ target_ipo(common_dependancies)
 
 ## Our executable / unit tests
 add_executable(${PROJECT_NAME})
+
+set_target_properties(${PROJECT_NAME} PROPERTIES
+        RUNTIME_OUTPUT_DIRECTORY bin
+        RUNTIME_OUTPUT_DIRECTORY_DEBUG bin
+        RUNTIME_OUTPUT_DIRECTORY_RELEASE bin)
+
 target_sources(${PROJECT_NAME} PUBLIC src/main.cpp)
 target_link_libraries(${PROJECT_NAME} PUBLIC komodo::common_dependancies)
 
 if (ENABLE_UNIT_TESTS)
     add_executable(${PROJECT_NAME}_unit_tests)
-    target_sources(${PROJECT_NAME}_unit_tests PUBLIC src/unit_tests.cpp)
-    target_link_libraries(${PROJECT_NAME}_unit_tests doctest)
+    set_target_properties(${PROJECT_NAME}_unit_tests PROPERTIES
+            RUNTIME_OUTPUT_DIRECTORY bin
+            RUNTIME_OUTPUT_DIRECTORY_DEBUG bin
+            RUNTIME_OUTPUT_DIRECTORY_RELEASE bin)
+    target_sources(${PROJECT_NAME}_unit_tests PUBLIC src/unit_tests.cpp src/config/config.test.cpp)
+    target_link_libraries(${PROJECT_NAME}_unit_tests doctest komodo::common_dependancies)
 endif ()
