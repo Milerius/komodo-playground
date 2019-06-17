@@ -19,7 +19,12 @@ macro(download_dependancies)
             GIT_REPOSITORY https://github.com/onqtam/doctest
             GIT_TAG 2.3.3
     )
-    FetchContent_MakeAvailable(json doctest)
+
+    FetchContent_Declare(
+            replxx
+            GIT_REPOSITORY https://github.com/AmokHuginnsson/replxx
+    )
+    FetchContent_MakeAvailable(json doctest replxx)
     message("Successfully downloaded dependancies")
 endmacro()
 

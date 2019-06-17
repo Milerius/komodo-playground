@@ -1,7 +1,9 @@
 #include <iostream>
+#include "shell/shell.hpp"
 
 int main()
 {
-    std::cout << "Hello world\n";
+    komodo::shell shell;
+    shell.run();
     return 0;
 }
