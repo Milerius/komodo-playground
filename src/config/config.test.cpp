@@ -14,4 +14,19 @@ namespace komodo::tests
         CHECK_NOTHROW(from_json(json_rpc_cfg, rpc_cfg));
         CHECK_EQ(rpc_cfg, rpc_config{"127.0.0.1", "myrpcusername", "myrpcpassword", 7771u});
     }
+
+    SCENARIO ("loading configuration")
+    {
+        GIVEN("without specifying any path") {
+            THEN("We load the configuration") {
+                REQUIRE_NE(rpc_config{}, parse_cfg());
+            }
+        }
+
+        GIVEN ("with specifying the path") {
+            THEN("We load the configuration") {
+                REQUIRE_NE(rpc_config{}, parse_cfg(std::filesystem::current_path() / "config.json"));
+            }
+        }
+    }
 }

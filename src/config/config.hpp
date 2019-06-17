@@ -4,9 +4,10 @@
 
 #pragma once
 
-#include <nlohmann/json.hpp>
+#include <fstream>
 #include <filesystem>
 #include <string>
+#include <nlohmann/json.hpp>
 
 namespace komodo
 {
@@ -31,11 +32,7 @@ namespace komodo
         unsigned short rpc_port;
     };
 
-    inline void from_json(const nlohmann::json &json_data, rpc_config &rpc_cfg)
-    {
-        rpc_cfg.ip_address = json_data.at("ip_address").get<std::string>();
-        rpc_cfg.rpc_user = json_data.at("rpc_user").get<std::string>();
-        rpc_cfg.rpc_password = json_data.at("rpc_password").get<std::string>();
-        rpc_cfg.rpc_port = json_data.at("rpc_port").get<unsigned short>();
-    }
+    void from_json(const nlohmann::json &json_data, rpc_config &rpc_cfg);
+
+    rpc_config parse_cfg(const std::filesystem::path &config_path = std::filesystem::current_path() / "config.json") noexcept;
 }
