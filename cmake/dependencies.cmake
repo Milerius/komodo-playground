@@ -1,7 +1,7 @@
 include(FetchContent)
 
 macro(download_dependancies)
-    message("Downloading dependancies...")
+    message("Downloading dependencies...")
     set(JSON_MultipleHeaders ON)
     cmake_policy(SET CMP0077 NEW)
     SET(JSON_BuildTests OFF CACHE BOOL "Disable dependancies json tests")
@@ -24,7 +24,12 @@ macro(download_dependancies)
             replxx
             GIT_REPOSITORY https://github.com/AmokHuginnsson/replxx
     )
-    FetchContent_MakeAvailable(json doctest replxx)
+
+    FetchContent_Declare(
+            restclient-cpp
+            GIT_REPOSITORY https://github.com/mrtazz/restclient-cpp
+    )
+    FetchContent_MakeAvailable(json doctest replxx restclient-cpp)
     message("Successfully downloaded dependancies")
 endmacro()
 

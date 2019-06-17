@@ -1,6 +1,6 @@
 {
   "ip_address": "127.0.0.1",
   "rpc_port": 7771,
-  "rpc_user": "myrpcusername",
+  "rpc_user": "myusername",
   "rpc_password": "myrpcpassword"
 }

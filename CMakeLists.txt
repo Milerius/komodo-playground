@@ -12,7 +12,7 @@ project(komodo_playground VERSION ${VERSION_NB}
 
 set(CMAKE_MODULE_PATH ${PROJECT_SOURCE_DIR}/cmake)
 include(utils)
-include(dependancies)
+include(dependencies)
 
 configure_file(config/config.json bin/config.json)
 
@@ -27,7 +27,7 @@ option(ENABLE_UNIT_TESTS "Enable unit tests for targets" ON)
 ## Common target for executable / unit tests
 add_library(common_dependancies INTERFACE)
 add_library(komodo::common_dependancies ALIAS common_dependancies)
-target_link_libraries(common_dependancies INTERFACE komodo::default_settings nlohmann_json::nlohmann_json $<$<PLATFORM_ID:Darwin>:c++fs> Replxx::Replxx)
+target_link_libraries(common_dependancies INTERFACE komodo::default_settings nlohmann_json::nlohmann_json $<$<PLATFORM_ID:Darwin>:c++fs> Replxx::Replxx restclient-cpp)
 target_include_directories(common_dependancies INTERFACE extra src)
 target_enable_asan(common_dependancies)
 target_enable_tsan(common_dependancies)
@@ -54,6 +54,6 @@ if (ENABLE_UNIT_TESTS)
             RUNTIME_OUTPUT_DIRECTORY bin
             RUNTIME_OUTPUT_DIRECTORY_DEBUG bin
             RUNTIME_OUTPUT_DIRECTORY_RELEASE bin)
-    target_sources(${PROJECT_NAME}_unit_tests PUBLIC src/unit_tests.cpp src/config/config.test.cpp)
+    target_sources(${PROJECT_NAME}_unit_tests PUBLIC src/unit_tests.cpp src/config/config.test.cpp src/shell/executor.test.cpp)
     target_link_libraries(${PROJECT_NAME}_unit_tests doctest komodo::common_dependancies)
 endif ()

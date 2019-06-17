@@ -4,9 +4,11 @@
 
 #pragma once
 
+#include <iostream>
 #include <vector>
 #include <string>
 #include <unordered_map>
+#include "restclient-cpp/restclient.h"
 #include "config/config.hpp"
 #include "command.hpp"
 #include "help.hpp"
@@ -21,7 +23,7 @@ namespace komodo
 
         }
 
-        bool help([[maybe_unused]]const std::vector<std::string>& args)
+        bool help([[maybe_unused]]const std::vector<std::string> &args) noexcept
         {
             bool successfully_executed = false;
             if (args.size() == 1) {
@@ -36,6 +38,19 @@ namespace komodo
                 std::cerr << "command help take only 1 or 2 arguments\n";
             }
             return successfully_executed;
+        }
+
+        bool getinfo() noexcept
+        {
+            RestClient::Response r = RestClient::post(entry_point_,
+                                                      "application/json",
+                                                      R"({"jsonrpc": "1.0", "id":"komodo_playground", "method": "getinfo", "params": []})");
+            if (r.code == 200) {
+                nlohmann::json json_data = nlohmann::json::parse(r.body);
+                std::cout << json_data.dump(4) << std::endl;
+                return true;
+            }
+            return false;
         }
 
         bool operator()(const std::vector<std::string> &splitted_command_line) noexcept
@@ -57,14 +72,23 @@ namespace komodo
         }
 
     private:
-        [[maybe_unused]] const rpc_config &rpc_cfg_;
+        const rpc_config &rpc_cfg_;
+        std::string entry_point_{
+                "http://" + rpc_cfg_.rpc_user + ":" + rpc_cfg_.rpc_password + "@" + rpc_cfg_.ip_address + ":" +
+                std::to_string(rpc_cfg_.rpc_port) + "/"};
         using command_name = std::string;
         std::unordered_map<command_name, command> cmd_registry_{
-                {"help", command{0u,
-                                 global_help_message,
-                                 [this]([[maybe_unused]]const std::vector<std::string> &args) {
-                                     return this->help(args);
-                                 }}
+                {"help",    command{0u,
+                                    global_help_message,
+                                    [this]([[maybe_unused]]const std::vector<std::string> &args) {
+                                        return this->help(args);
+                                    }}
+                },
+                {
+                 "getinfo", command{0u, get_info_help_message,
+                                    [this]([[maybe_unused]]const std::vector<std::string> &args) {
+                                        return this->getinfo();
+                                    }}
                 }
         };
     };
