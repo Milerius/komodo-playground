@@ -21,13 +21,21 @@ namespace komodo
 
         }
 
-        void help([[maybe_unused]]std::vector<std::string> args)
+        bool help([[maybe_unused]]const std::vector<std::string>& args)
         {
+            bool successfully_executed = false;
             if (args.size() == 1) {
                 std::cerr << global_help_message << "\n";
+                successfully_executed = true;
+            } else if (args.size() == 2) {
+                if (this->cmd_registry_.find(args[1]) != this->cmd_registry_.end()) {
+                    std::cout << cmd_registry_.at(args[1]).help_message << "\n";
+                    successfully_executed = true;
+                }
             } else {
-                // TODO: Use help message from additional command.
+                std::cerr << "command help take only 1 or 2 arguments\n";
             }
+            return successfully_executed;
         }
 
         bool operator()(const std::vector<std::string> &splitted_command_line) noexcept
@@ -35,7 +43,11 @@ namespace komodo
             bool command_successfully_executed = false;
             try {
                 auto command_name = splitted_command_line[0];
-                cmd_registry_.at(command_name).callback(splitted_command_line);
+                auto well_formed = cmd_registry_.at(command_name).callback(splitted_command_line);
+                if (not well_formed) {
+                    std::cerr << global_help_message << "\n";
+                    return false;
+                }
                 command_successfully_executed = true;
             }
             catch (const std::out_of_range &err) {
@@ -51,7 +63,7 @@ namespace komodo
                 {"help", command{0u,
                                  global_help_message,
                                  [this]([[maybe_unused]]const std::vector<std::string> &args) {
-                                     this->help(args);
+                                     return this->help(args);
                                  }}
                 }
         };

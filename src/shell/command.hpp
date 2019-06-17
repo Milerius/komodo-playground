@@ -13,6 +13,6 @@ namespace komodo
     {
         unsigned int nb_args;
         std::string help_message;
-        std::function<void(const std::vector<std::string> &)> callback;
+        std::function<bool(const std::vector<std::string> &)> callback;
     };
 }
