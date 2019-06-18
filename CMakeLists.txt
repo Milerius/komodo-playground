@@ -54,6 +54,6 @@ if (ENABLE_UNIT_TESTS)
             RUNTIME_OUTPUT_DIRECTORY bin
             RUNTIME_OUTPUT_DIRECTORY_DEBUG bin
             RUNTIME_OUTPUT_DIRECTORY_RELEASE bin)
-    target_sources(${PROJECT_NAME}_unit_tests PUBLIC src/unit_tests.cpp src/config/config.test.cpp src/shell/executor.test.cpp)
+    target_sources(${PROJECT_NAME}_unit_tests PUBLIC src/unit_tests.cpp src/config/config.test.cpp src/shell/executor.test.cpp src/shell/rpc.header.test.cpp)
     target_link_libraries(${PROJECT_NAME}_unit_tests doctest komodo::common_dependancies)
 endif ()

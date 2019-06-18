@@ -11,7 +11,7 @@ namespace komodo
 {
     struct command
     {
-        unsigned int nb_args;
+        unsigned int max_args;
         std::string help_message;
         std::function<bool(const std::vector<std::string> &)> callback;
     };

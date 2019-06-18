@@ -12,18 +12,27 @@
 #include "config/config.hpp"
 #include "command.hpp"
 #include "help.hpp"
+#include "rpc.header.hpp"
 
 namespace komodo
 {
     class executor
     {
+    private:
+        static bool dump_answer(const RestClient::Response &response) noexcept
+        {
+            nlohmann::json json_data = nlohmann::json::parse(response.body);
+            std::cout << json_data.dump(4) << std::endl;
+            return response.code == 200;
+        }
+
     public:
         explicit executor(const rpc_config &rpc_cfg) noexcept : rpc_cfg_(rpc_cfg)
         {
 
         }
 
-        bool help([[maybe_unused]]const std::vector<std::string> &args) noexcept
+        bool help(const std::vector<std::string> &args) noexcept
         {
             bool successfully_executed = false;
             if (args.size() == 1) {
@@ -35,22 +44,50 @@ namespace komodo
                     successfully_executed = true;
                 }
             } else {
-                std::cerr << "command help take only 1 or 2 arguments\n";
+                std::cerr << "command help take only 0 or 1 arguments\n";
             }
             return successfully_executed;
         }
 
         bool getinfo() noexcept
         {
+            using namespace nlohmann;
+            json json_rpc_header = rpc_header{"1.0", "komodo_playground", "getinfo", json::array()};
             RestClient::Response r = RestClient::post(entry_point_,
                                                       "application/json",
-                                                      R"({"jsonrpc": "1.0", "id":"komodo_playground", "method": "getinfo", "params": []})");
-            if (r.code == 200) {
-                nlohmann::json json_data = nlohmann::json::parse(r.body);
-                std::cout << json_data.dump(4) << std::endl;
-                return true;
+                                                      json_rpc_header.dump());
+            return dump_answer(r);
+        }
+
+        bool getrawtransaction([[maybe_unused]] const std::vector<std::string> &args, bool show_result = true) noexcept
+        {
+            if (args.size() == 1 || args.size() > 3) {
+                std::cerr << "command getrawtransaction take only 1 or 2 arguments\n";
+                return false;
             }
-            return false;
+            using namespace nlohmann;
+            json json_rpc_header = rpc_header{"1.0", "komodo_playground",
+                                              "getrawtransaction", json::array({args[1]})};
+            if (args.size() == 3) {
+                try {
+                    json_rpc_header["params"].push_back(std::stoi(args[2]));
+                }
+                catch (const std::invalid_argument &error) {
+                    std::cerr << "second argument should be a number\n";
+                    return false;
+                }
+            }
+            RestClient::Response r = RestClient::post(entry_point_,
+                                                      "application/json",
+                                                      json_rpc_header.dump());
+
+            if (show_result && r.code == 200 && args.size() == 2) {
+                nlohmann::json json_data = nlohmann::json::parse(r.body);
+                std::cout << json_data["result"] << "\n";
+                return true;
+            } else {
+                return dump_answer(r);
+            }
         }
 
         bool operator()(const std::vector<std::string> &splitted_command_line) noexcept
@@ -60,7 +97,7 @@ namespace komodo
                 auto command_name = splitted_command_line[0];
                 auto well_formed = cmd_registry_.at(command_name).callback(splitted_command_line);
                 if (not well_formed) {
-                    std::cerr << global_help_message << "\n";
+                    help({"help", command_name});
                     return false;
                 }
                 command_successfully_executed = true;
@@ -78,18 +115,24 @@ namespace komodo
                 std::to_string(rpc_cfg_.rpc_port) + "/"};
         using command_name = std::string;
         std::unordered_map<command_name, command> cmd_registry_{
-                {"help",    command{0u,
-                                    global_help_message,
-                                    [this]([[maybe_unused]]const std::vector<std::string> &args) {
-                                        return this->help(args);
-                                    }}
+                {"help",              command{1u,
+                                              global_help_message,
+                                              [this]([[maybe_unused]]const std::vector<std::string> &args) {
+                                                  return this->help(args);
+                                              }}
                 },
                 {
-                 "getinfo", command{0u, get_info_help_message,
-                                    [this]([[maybe_unused]]const std::vector<std::string> &args) {
-                                        return this->getinfo();
-                                    }}
-                }
+                 "getinfo",           command{0u, get_info_help_message,
+                                              [this]([[maybe_unused]]const std::vector<std::string> &args) {
+                                                  return this->getinfo();
+                                              }}
+                },
+                {
+                 "getrawtransaction", command{2u, get_rawtransaction_help_message,
+                                              [this](const std::vector<std::string> &args) {
+                                                  return this->getrawtransaction(args);
+                                              }}
+                },
         };
     };
 }
