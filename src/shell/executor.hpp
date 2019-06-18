@@ -59,7 +59,7 @@ namespace komodo
             return dump_answer(r);
         }
 
-        bool getrawtransaction([[maybe_unused]] const std::vector<std::string> &args, bool show_result = true) noexcept
+        bool getrawtransaction(const std::vector<std::string> &args, bool show_result = true) noexcept
         {
             if (args.size() == 1 || args.size() > 3) {
                 std::cerr << "command getrawtransaction take only 1 or 2 arguments\n";
@@ -90,6 +90,21 @@ namespace komodo
             }
         }
 
+        bool decoderawtransaction(const std::vector<std::string> &args) noexcept
+        {
+            if (args.size() != 2) {
+                std::cerr << "command decoderawtransaction take only 1 argument\n";
+                return false;
+            }
+            using namespace nlohmann;
+            json json_rpc_header = rpc_header{"1.0", "komodo_playground",
+                                              "decoderawtransaction", json::array({args[1]})};
+            RestClient::Response r = RestClient::post(entry_point_,
+                                                      "application/json",
+                                                      json_rpc_header.dump());
+            return dump_answer(r);
+        }
+
         bool operator()(const std::vector<std::string> &splitted_command_line) noexcept
         {
             bool command_successfully_executed = false;
@@ -97,7 +112,6 @@ namespace komodo
                 auto command_name = splitted_command_line[0];
                 auto well_formed = cmd_registry_.at(command_name).callback(splitted_command_line);
                 if (not well_formed) {
-                    help({"help", command_name});
                     return false;
                 }
                 command_successfully_executed = true;
@@ -115,23 +129,29 @@ namespace komodo
                 std::to_string(rpc_cfg_.rpc_port) + "/"};
         using command_name = std::string;
         std::unordered_map<command_name, command> cmd_registry_{
-                {"help",              command{1u,
-                                              global_help_message,
-                                              [this]([[maybe_unused]]const std::vector<std::string> &args) {
-                                                  return this->help(args);
-                                              }}
+                {"help",                 command{1u,
+                                                 global_help_message,
+                                                 [this]([[maybe_unused]]const std::vector<std::string> &args) {
+                                                     return this->help(args);
+                                                 }}
                 },
                 {
-                 "getinfo",           command{0u, get_info_help_message,
-                                              [this]([[maybe_unused]]const std::vector<std::string> &args) {
-                                                  return this->getinfo();
-                                              }}
+                 "getinfo",              command{0u, get_info_help_message,
+                                                 [this]([[maybe_unused]]const std::vector<std::string> &args) {
+                                                     return this->getinfo();
+                                                 }}
                 },
                 {
-                 "getrawtransaction", command{2u, get_rawtransaction_help_message,
-                                              [this](const std::vector<std::string> &args) {
-                                                  return this->getrawtransaction(args);
-                                              }}
+                 "getrawtransaction",    command{2u, get_rawtransaction_help_message,
+                                                 [this](const std::vector<std::string> &args) {
+                                                     return this->getrawtransaction(args);
+                                                 }}
+                },
+                {
+                 "decoderawtransaction", command{1u, decode_rawtransaction_help_message,
+                                                 [this](const std::vector<std::string> &args) {
+                                                     return this->decoderawtransaction(args);
+                                                 }}
                 },
         };
     };
