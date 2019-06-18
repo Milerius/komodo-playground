@@ -11,7 +11,8 @@ namespace komodo
 help ("command")
 getinfo
 getrawtransaction <txid> [verbose]
-decoderawtransaction <hexid>)";
+decoderawtransaction <hexid>
+decodetransaction <txid> (getrawtransaction + decoderawtransaction))";
 
     static constexpr const char *get_info_help_message = R"(getinfo
 Returns an object containing various state info.

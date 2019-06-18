@@ -59,7 +59,8 @@ namespace komodo
             return dump_answer(r);
         }
 
-        bool getrawtransaction(const std::vector<std::string> &args, bool show_result = true) noexcept
+        bool getrawtransaction(const std::vector<std::string> &args, bool show_result = true,
+                               std::string *save_result = nullptr) noexcept
         {
             if (args.size() == 1 || args.size() > 3) {
                 std::cerr << "command getrawtransaction take only 1 or 2 arguments\n";
@@ -80,14 +81,17 @@ namespace komodo
             RestClient::Response r = RestClient::post(entry_point_,
                                                       "application/json",
                                                       json_rpc_header.dump());
-
-            if (show_result && r.code == 200 && args.size() == 2) {
+            if (r.code == 200 && args.size() == 2) {
                 nlohmann::json json_data = nlohmann::json::parse(r.body);
-                std::cout << json_data["result"] << "\n";
+                if (save_result != nullptr) {
+                    *save_result = json_data["result"].get<std::string>();
+                }
+                if (show_result) {
+                    std::cout << json_data["result"] << "\n";
+                }
                 return true;
-            } else {
-                return dump_answer(r);
             }
+            return dump_answer(r);
         }
 
         bool decoderawtransaction(const std::vector<std::string> &args) noexcept
@@ -103,6 +107,21 @@ namespace komodo
                                                       "application/json",
                                                       json_rpc_header.dump());
             return dump_answer(r);
+        }
+
+        bool decodetransaction(const std::vector<std::string> &args) noexcept
+        {
+            if (args.size() != 2) {
+                std::cerr << "command decodetransaction take only 1 argument\n";
+                return false;
+            }
+            std::string result;
+            auto success = getrawtransaction({"getrawtransaction", args[1]}, false, &result);
+            if (not success) {
+                std::cerr << "error when getting the raw transaction, please retry.\n";
+                return false;
+            }
+            return decoderawtransaction({"decoderawtransaction", result});
         }
 
         bool operator()(const std::vector<std::string> &splitted_command_line) noexcept
@@ -151,6 +170,12 @@ namespace komodo
                  "decoderawtransaction", command{1u, decode_rawtransaction_help_message,
                                                  [this](const std::vector<std::string> &args) {
                                                      return this->decoderawtransaction(args);
+                                                 }}
+                },
+                {
+                 "decodetransaction",    command{1u, "",
+                                                 [this](const std::vector<std::string> &args) {
+                                                     return this->decodetransaction(args);
                                                  }}
                 },
         };
