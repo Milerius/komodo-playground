@@ -51,6 +51,11 @@ namespace komodo
                 trim(input);
                 if (input == "exit")
                     break;
+                if (input == "clear") {
+                    rx_.clear_screen();
+                    rx_.history_add(input);
+                    continue;
+                }
                 auto args = split(input);
                 if (cmd_executor_(args)) {
                     rx_.history_add(input);
