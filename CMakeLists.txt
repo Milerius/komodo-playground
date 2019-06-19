@@ -48,6 +48,27 @@ set_target_properties(${PROJECT_NAME} PROPERTIES
 target_sources(${PROJECT_NAME} PUBLIC src/main.cpp)
 target_link_libraries(${PROJECT_NAME} PUBLIC komodo::common_dependancies)
 
+##! Gui
+if (APPLE)
+    find_library(applicationservices ApplicationServices)
+    find_library(corefoundation_lib CoreFoundation)
+    find_library(cfnetwork_lib CFNetwork)
+    set(frameworks
+            ${cfnetwork_lib}
+            ${corefoundation_lib}
+            ${applicationservices})
+endif ()
+
+find_package(ImGui-SFML REQUIRED)
+add_executable(${PROJECT_NAME}_gui)
+
+set_target_properties(${PROJECT_NAME}_gui PROPERTIES
+        RUNTIME_OUTPUT_DIRECTORY bin
+        RUNTIME_OUTPUT_DIRECTORY_DEBUG bin
+        RUNTIME_OUTPUT_DIRECTORY_RELEASE bin)
+target_sources(${PROJECT_NAME}_gui PUBLIC src/gui/main.cpp)
+target_link_libraries(${PROJECT_NAME}_gui PUBLIC komodo::common_dependancies PRIVATE ImGui-SFML::ImGui-SFML ${frameworks})
+
 if (ENABLE_UNIT_TESTS)
     add_executable(${PROJECT_NAME}_unit_tests)
     set_target_properties(${PROJECT_NAME}_unit_tests PROPERTIES
