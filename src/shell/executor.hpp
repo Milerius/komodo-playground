@@ -66,6 +66,22 @@ namespace komodo
             return dump_answer(r);
         }
 
+        command_result getbalance() noexcept
+        {
+            using namespace nlohmann;
+            json json_rpc_header = rpc_header{"1.0", "komodo_playground", "getbalance", json::array()};
+            RestClient::Response r = RestClient::post(entry_point_,
+                                                      "application/json",
+                                                      json_rpc_header.dump());
+            if (r.code == 200) {
+                nlohmann::json json_data = nlohmann::json::parse(r.body);
+                auto result = std::to_string(json_data["result"].get<float>());
+                std::cout << result << std::endl;
+                return {true, result};
+            } else
+                return dump_answer(r);
+        }
+
         command_result getrawtransaction(const std::vector<std::string> &args, bool show_result = true,
                                          std::string *save_result = nullptr) noexcept
         {
@@ -170,6 +186,12 @@ namespace komodo
                  "getinfo",              command{0u, get_info_help_message,
                                                  [this]([[maybe_unused]]const std::vector<std::string> &args) {
                                                      return this->getinfo();
+                                                 }}
+                },
+                {
+                 "getbalance",           command{0u, get_info_help_message,
+                                                 [this]([[maybe_unused]]const std::vector<std::string> &args) {
+                                                     return this->getbalance();
                                                  }}
                 },
                 {

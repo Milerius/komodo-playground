@@ -28,7 +28,7 @@ namespace komodo::gui
         {
             ImGui::SetNextWindowPos(ImVec2(0, 0), ImGuiCond_FirstUseEver);
             ImGui::SetNextWindowSize(ImVec2(1920, 1080), ImGuiCond_FirstUseEver);
-            if (!ImGui::Begin(root_wdg.title.c_str(), &root_wdg.is_open)) {
+            if (!ImGui::Begin(root_wdg.title.c_str(), &root_wdg.is_open, ImGuiWindowFlags_NoMove)) {
                 ImGui::End();
             }
             if (ImGui::BeginPopupContextItem()) {
@@ -118,13 +118,6 @@ namespace komodo::gui
         static void welcome_message_draw() noexcept
         {
             ImGui::TextWrapped("Welcome to the komodo gui console, type Help.");
-            ImGui::Separator();
-        }
-
-    public:
-        explicit console(const rpc_config &rpc_cfg) : rpc_cfg_{rpc_cfg}
-        {
-
         }
 
         void console_content_draw()
@@ -139,10 +132,31 @@ namespace komodo::gui
             scroll_to_bottom = false;
         }
 
+        void extra_gui_buttons_draw()
+        {
+            if (ImGui::SmallButton("Show balance")) {
+                auto res = cmd_executor_({"getbalance"});
+                log(res.second);
+                scroll_to_bottom = true;
+            }
+            ImGui::SameLine();
+            if (ImGui::SmallButton("Clear console")) {
+                items_.clear();
+            }
+            ImGui::Separator();
+        }
+
+    public:
+        explicit console(const rpc_config &rpc_cfg) : rpc_cfg_{rpc_cfg}
+        {
+
+        }
+
         bool draw() noexcept
         {
             begin_root_widget_draw();
             welcome_message_draw();
+            extra_gui_buttons_draw();
             begin_footer_widget_draw();
             console_content_draw();
             end_footer_widget_draw();

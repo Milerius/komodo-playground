@@ -13,6 +13,12 @@ namespace komodo::tests
         CHECK(exc.getinfo().first);
     }
 
+    TEST_CASE ("getbalance")
+    {
+        executor exc(parse_cfg());
+        CHECK(exc.getbalance().first);
+    }
+
     TEST_CASE ("help")
     {
         executor exc(parse_cfg());
