@@ -8,6 +8,7 @@
 #include <SFML/Graphics/RenderWindow.hpp>
 #include <SFML/Window/Event.hpp>
 #include <imgui-SFML.h>
+#include <config/config.hpp>
 #include "console_widget.hpp"
 
 namespace komodo::gui
@@ -51,6 +52,8 @@ namespace komodo::gui
         {
             window_.setFramerateLimit(60);
             ImGui::SFML::Init(window_);
+            ImGuiIO *io = &ImGui::GetIO();
+            io->FontGlobalScale = 2.0;
         }
 
         void run()
@@ -70,8 +73,9 @@ namespace komodo::gui
         }
 
     private:
+        rpc_config rpc_cfg_{parse_cfg()};
         sf::Clock delta_clock_;
         sf::RenderWindow window_{sf::RenderWindow(sf::VideoMode(1920, 1080), "Komodo playground", sf::Style::None)};
-        komodo::gui::console console_;
+        komodo::gui::console console_{rpc_cfg_};
     };
 }

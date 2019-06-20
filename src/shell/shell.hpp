@@ -57,7 +57,7 @@ namespace komodo
                     continue;
                 }
                 auto args = split(input);
-                if (cmd_executor_(args)) {
+                if (cmd_executor_(args).first) {
                     rx_.history_add(input);
                 }
             }

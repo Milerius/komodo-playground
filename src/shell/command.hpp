@@ -13,6 +13,6 @@ namespace komodo
     {
         unsigned int max_args;
         std::string help_message;
-        std::function<bool(const std::vector<std::string> &)> callback;
+        std::function<std::pair<bool, std::string>(const std::vector<std::string> &)> callback;
     };
 }
